@@ -33,7 +33,7 @@ function App() {
             <Routes>
               <Route path="/" element={<Navigate to="/search" replace />} />
               <Route path="/add" element={<AddVehicle onVehicleAdded={() => {}} />} />
-              <Route path="/search" element={<SearchBook onBookingCreated={() => {}} />} />
+              <Route path="/search" element={<SearchBook />} />
               <Route path="/bookings" element={<BookingHistory />} />
             </Routes>
           </div>
