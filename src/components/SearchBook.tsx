@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Search, Calendar, MapPin, Package, Clock, CheckCircle, AlertCircle, Truck } from 'lucide-react';
 import apiService from '../services/api';
 import { Vehicle, SearchCriteria } from '../types';
@@ -8,6 +9,7 @@ interface SearchBookProps {
 }
 
 const SearchBook: React.FC<SearchBookProps> = ({ onBookingCreated }) => {
+  const navigate = useNavigate();
   const [searchCriteria, setSearchCriteria] = useState<SearchCriteria>({
     capacityRequired: 0,
     fromPincode: '',
@@ -84,6 +86,10 @@ const SearchBook: React.FC<SearchBookProps> = ({ onBookingCreated }) => {
       if (onBookingCreated) {
         onBookingCreated();
       }
+      // Navigate to bookings page after successful booking
+      setTimeout(() => {
+        navigate('/bookings');
+      }, 1500);
     } catch (error) {
       setMessage({ 
         type: 'error', 

@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, Truck, MapPin, Clock, User } from 'lucide-react';
+import { Calendar, Truck, MapPin, Clock, User, X, AlertCircle, CheckCircle } from 'lucide-react';
 import apiService from '../services/api';
 import { Booking } from '../types';
 
 const BookingHistory: React.FC = () => {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(false);
+  const [cancellingId, setCancellingId] = useState<string | null>(null);
+  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   const fetchBookings = async () => {
     setLoading(true);
@@ -22,6 +24,28 @@ const BookingHistory: React.FC = () => {
   useEffect(() => {
     fetchBookings();
   }, []);
+
+  const handleCancelBooking = async (bookingId: string) => {
+    if (!confirm('Are you sure you want to cancel this booking?')) {
+      return;
+    }
+
+    setCancellingId(bookingId);
+    setMessage(null);
+
+    try {
+      await apiService.cancelBooking(bookingId);
+      setMessage({ type: 'success', text: 'Booking cancelled successfully!' });
+      fetchBookings(); // Refresh the list
+    } catch (error) {
+      setMessage({ 
+        type: 'error', 
+        text: error instanceof Error ? error.message : 'Failed to cancel booking'
+      });
+    } finally {
+      setCancellingId(null);
+    }
+  };
 
   const formatDateTime = (dateString: string) => {
     return new Date(dateString).toLocaleString();
@@ -58,6 +82,22 @@ const BookingHistory: React.FC = () => {
         </div>
       </div>
 
+      {/* Messages */}
+      {message && (
+        <div className={`flex items-center gap-2 p-4 rounded-lg mb-6 ${
+          message.type === 'success' 
+            ? 'bg-green-50 text-green-800 border border-green-200' 
+            : 'bg-red-50 text-red-800 border border-red-200'
+        }`}>
+          {message.type === 'success' ? (
+            <CheckCircle className="w-5 h-5" />
+          ) : (
+            <AlertCircle className="w-5 h-5" />
+          )}
+          <span className="font-medium">{message.text}</span>
+        </div>
+      )}
+
       {bookings.length === 0 ? (
         <div className="text-center py-12">
           <div className="bg-gray-100 p-4 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
@@ -85,9 +125,25 @@ const BookingHistory: React.FC = () => {
                     </div>
                   </div>
                 </div>
-                <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(booking.status)}`}>
-                  {booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
-                </span>
+                <div className="flex items-center gap-2">
+                  <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(booking.status)}`}>
+                    {booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
+                  </span>
+                  {booking.status === 'confirmed' && (
+                    <button
+                      onClick={() => handleCancelBooking(booking._id)}
+                      disabled={cancellingId === booking._id}
+                      className="bg-red-100 hover:bg-red-200 disabled:bg-gray-100 text-red-600 hover:text-red-700 disabled:text-gray-400 p-2 rounded-lg transition-all duration-200"
+                      title="Cancel Booking"
+                    >
+                      {cancellingId === booking._id ? (
+                        <div className="w-4 h-4 border-2 border-red-600 border-t-transparent rounded-full animate-spin"></div>
+                      ) : (
+                        <X className="w-4 h-4" />
+                      )}
+                    </button>
+                  )}
+                </div>
               </div>
 
               <div className="grid md:grid-cols-3 gap-4 text-sm">
