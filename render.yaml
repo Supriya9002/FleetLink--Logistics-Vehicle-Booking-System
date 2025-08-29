@@ -1,4 +1,5 @@
 services:
+  # Backend API Service
   - type: web
     name: fleetlink-backend
     env: node
@@ -12,3 +13,17 @@ services:
       - key: PORT
         value: 10000
     healthCheckPath: /api/vehicles
+
+  # Frontend Static Site
+  - type: web
+    name: fleetlink-frontend
+    env: static
+    buildCommand: npm install && npm run build
+    staticPublishPath: ./dist
+    envVars:
+      - key: VITE_API_BASE_URL
+        value: https://fleetlink-backend.onrender.com/api
+    routes:
+      - type: rewrite
+        source: /api/*
+        destination: https://fleetlink-backend.onrender.com/api/*
