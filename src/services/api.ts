@@ -61,6 +61,12 @@ class ApiService {
   async getAllBookings(): Promise<ApiResponse<Booking[]>> {
     return this.request('/bookings');
   }
+
+  async cancelBooking(bookingId: string): Promise<ApiResponse<Booking>> {
+    return this.request(`/bookings/${bookingId}`, {
+      method: 'DELETE',
+    });
+  }
 }
 
 export default new ApiService();

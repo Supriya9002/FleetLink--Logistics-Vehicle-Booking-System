@@ -1,4 +1,5 @@
 import express from 'express';
+import mongoose from 'mongoose';
 import Vehicle from '../models/Vehicle.js';
 import Booking from '../models/Booking.js';
 import { calculateRideDuration, calculateEndTime } from '../utils/rideCalculation.js';
@@ -124,6 +125,43 @@ router.get('/', async (req, res, next) => {
       success: true,
       message: 'Bookings retrieved successfully',
       data: bookings
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// DELETE /api/bookings/:id - Cancel a booking
+router.delete('/:id', async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    
+    // Validate booking ID
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid booking ID format'
+      });
+    }
+    
+    // Find and update the booking
+    const booking = await Booking.findByIdAndUpdate(
+      id,
+      { status: 'cancelled' },
+      { new: true }
+    ).populate('vehicleId', 'name capacityKg tyres');
+    
+    if (!booking) {
+      return res.status(404).json({
+        success: false,
+        message: 'Booking not found'
+      });
+    }
+    
+    res.json({
+      success: true,
+      message: 'Booking cancelled successfully',
+      data: booking
     });
   } catch (error) {
     next(error);

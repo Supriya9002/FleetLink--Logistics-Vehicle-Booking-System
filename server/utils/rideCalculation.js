@@ -1,7 +1,6 @@
 /**
  * Calculate estimated ride duration based on pincode difference
- * This is a simplified logic for demonstration purposes
- * In production, this would integrate with actual routing services
+ * More realistic calculation considering distance and road conditions
  */
 export const calculateRideDuration = (fromPincode, toPincode) => {
   const from = parseInt(fromPincode);
@@ -11,11 +10,28 @@ export const calculateRideDuration = (fromPincode, toPincode) => {
     throw new Error('Invalid pincode format');
   }
   
-  // Simplified calculation: absolute difference modulo 24 hours
-  const duration = Math.abs(from - to) % 24;
+  // Calculate distance based on pincode difference
+  const pincodeDifference = Math.abs(from - to);
   
-  // Ensure minimum duration of 1 hour
-  return Math.max(duration, 1);
+  // More realistic calculation:
+  // 1. Base distance: pincode difference * 0.1 km (rough approximation)
+  // 2. Average speed: 40 km/h (considering city traffic and stops)
+  // 3. Add buffer time for loading/unloading and traffic
+  
+  const baseDistanceKm = pincodeDifference * 0.1;
+  const averageSpeedKmh = 40;
+  const baseTravelTimeHours = baseDistanceKm / averageSpeedKmh;
+  
+  // Add buffer time based on distance
+  const bufferTimeHours = Math.max(0.5, baseDistanceKm * 0.02); // 2% of distance as buffer
+  
+  // Add loading/unloading time
+  const loadingTimeHours = 0.5;
+  
+  const totalDuration = baseTravelTimeHours + bufferTimeHours + loadingTimeHours;
+  
+  // Ensure minimum duration of 1 hour and maximum of 48 hours
+  return Math.max(1, Math.min(48, Math.round(totalDuration * 10) / 10));
 };
 
 /**
